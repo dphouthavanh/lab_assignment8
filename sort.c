@@ -1,20 +1,120 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int extraMemoryAllocated;
 
 // implements heap sort
 // extraMemoryAllocated counts bytes of memory allocated
+void swap(int* x, int* y)
+{
+    int temp;
+    temp = *x;
+    *x = *y;
+    *y = temp;
+
+}
+
+void heapify(int arr[], int n, int i)
+{
+    int largest = i;
+    int l = 2 * i + 1;
+    int r = 2 * i + 2;
+  
+    if (l < n && arr[l] > arr[largest])
+      largest = l;
+  
+    if (r < n && arr[r] > arr[largest])
+      largest = r;
+  
+    if (largest != i) 
+	{
+      swap(&arr[i], &arr[largest]);
+      heapify(arr, n, l);
+    }
+}
+
 void heapSort(int arr[], int n)
 {
+	for (int i = n / 2 - 1; i >= 0; i--)
+      heapify(arr, n, i);
+  
+    for (int i = n - 1; i >= 0; i--) 
+	{
+      swap(&arr[0], &arr[i]);
+  
+      heapify(arr, i, 0);
+    }
 }
 
 
 // implement merge sort
 // extraMemoryAllocated counts bytes of extra memory allocated
+
+void merge(int pData[], int l, int m, int r)
+{
+	int n1 = m - l + 1;
+	int n2 = r - m;
+	int x, y, z;
+
+	int *L = (int*) malloc(n1*sizeof(int));
+	int *R = (int*) malloc(n2*sizeof(int));
+	extraMemoryAllocated = n1*sizeof(int) + n2*sizeof(int);
+
+	for (x = 0; x < n1; x++)
+		L[x] = pData[l + x];
+	for (int y = 0; y < n2; y++)
+		R[y] = pData[m + 1 + y];
+
+	x = 0;
+	y = 0;
+	z = l;	
+		
+	while (x < n1 && y < n2)
+	{
+		if (L[x] <= R[y])
+		{
+			pData[z] = L[x];
+			x++;
+		}
+		else
+		{
+			pData[z] = R[y];
+			y++;
+		}
+		z++;
+	}
+
+	while (x < n1)
+	{
+		pData[z] = L[x];
+		x++;
+		z++;
+	}
+
+	while (y < n2)
+	{
+		pData[z] = R[y];
+		y++;
+		z++;
+	}
+
+	free(L);
+	free(R);
+}
+
 void mergeSort(int pData[], int l, int r)
 {
+	if (l < r)
+	{
+		int m = (r + l) / 2;
+
+		mergeSort(pData, l, m);
+		mergeSort(pData, m + 1, r);
+
+		merge(pData, l, m, r);
+	}
 }
 
 // parses input file to an integer array
@@ -41,10 +141,8 @@ int parseData(char *inputFileName, int **ppData)
 			data = *ppData + i;
 			*data = n;
 		}
-
 		fclose(inFile);
 	}
-	
 	return dataSz;
 }
 
@@ -55,6 +153,11 @@ void printArray(int pData[], int dataSz)
 	printf("\tData:\n\t");
 	for (i=0;i<100;++i)
 	{
+		if(i>=dataSz)
+		{
+			printf("\n\n");
+			return;
+		}	
 		printf("%d ",pData[i]);
 	}
 	printf("\n\t");
@@ -112,5 +215,4 @@ int main(void)
 		free(pDataCopy);
 		free(pDataSrc);
 	}
-	
 }
